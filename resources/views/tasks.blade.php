@@ -1,92 +1,124 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Add Task</title>
-
+    <title>Task Manager</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: Arial;
             background: #f4f6f9;
-            margin: 0;
-            padding: 0;
+            padding: 30px;
         }
-
         .container {
-            width: 400px;
-            margin: 80px auto;
+            max-width: 800px;
             background: white;
-            padding: 25px 30px;
+            padding: 25px;
             border-radius: 10px;
-            box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+            margin: auto;
+            box-shadow: 0px 0px 10px #ccc;
         }
-
         h2 {
             text-align: center;
-            margin-bottom: 25px;
         }
-
-        input, textarea, select {
+        input, textarea, select, button {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             margin-top: 8px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 14px;
         }
-
-        textarea {
-            resize: none;
-            height: 80px;
-        }
-
-        button {
+        table {
             width: 100%;
-            background: #4f46e5;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+        .success {
+            background: #d4edda;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .btn-delete {
+            background: #dc3545;
             color: white;
             border: none;
-            padding: 12px;
-            font-size: 15px;
-            border-radius: 6px;
             cursor: pointer;
-            margin-top: 15px;
         }
-
-        button:hover {
-            background: #4338ca;
-        }
-
-        label {
-            font-size: 13px;
-            color: #555;
+        .btn-edit {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            cursor: pointer;
         }
     </style>
 </head>
-
 <body>
 
 <div class="container">
-    <h2>📝 Add New Task</h2>
 
+    <h2>✅ Task Manager</h2>
+
+    {{-- Success message --}}
+    @if(session('success'))
+        <div class="success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    {{-- Add Task Form --}}
     <form method="POST" action="/tasks">
         @csrf
 
-        <label>Title</label>
-        <input type="text" name="title" placeholder="Enter task title" required>
+        <input type="text" name="title" placeholder="Title" required>
 
-        <label>Description</label>
-        <textarea name="description" placeholder="Optional description"></textarea>
+        <textarea name="description" placeholder="Description"></textarea>
 
-        <label>Due Date</label>
         <input type="date" name="due_date">
 
-        <label>Status</label>
         <select name="status">
             <option value="pending">Pending</option>
             <option value="done">Done</option>
         </select>
 
-        <button type="submit">Save Task</button>
+        <button type="submit">➕ Add Task</button>
     </form>
+
+    {{-- Tasks Table --}}
+    <table>
+        <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Due</th>
+            <th>Actions</th>
+        </tr>
+
+        @foreach($tasks as $task)
+        <tr>
+            <td>{{ $task->title }}</td>
+            <td>{{ $task->status }}</td>
+            <td>{{ $task->due_date }}</td>
+            <td>
+                {{-- Delete --}}
+                <form method="POST" action="/tasks/{{ $task->id }}" style="display:inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button class="btn-delete">Delete</button>
+                </form>
+
+                {{-- Edit --}}
+<form method="POST" action="/tasks/{{ $task->id }}" style="display:inline;">
+    @csrf
+    @method('PUT')
+    <button class="btn-edit">Mark Done</button>
+</form>
+
+            </td>
+        </tr>
+        @endforeach
+    </table>
+
 </div>
 
 </body>

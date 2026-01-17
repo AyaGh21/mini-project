@@ -5,57 +5,45 @@ namespace App\Http\Controllers;
 use App\Models\Task;
 use Illuminate\Http\Request;
 
-
 class TaskController extends Controller
 {
-
     public function index()
     {
-        return Task::all();
+       $tasks = \App\Models\Task::all();  
+    return view('tasks', compact('tasks'));
     }
 
-public function store(Request $request)
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required',
+        ]);
+
+        Task::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'status' => $request->status,
+            'due_date' => $request->due_date,
+        ]);
+
+        return redirect('/')->with('success', 'Task added successfully!');
+    }
+
+public function update(Request $request, $id)
 {
-    $validated = $request->validate([
-        'title' => 'required|string',
-        'description' => 'nullable|string',
-        'due_date' => 'nullable|date',
-        'status' => 'nullable|in:pending,done'
+    $task = Task::findOrFail($id);
+
+    $task->update([
+        'status' => 'done'
     ]);
 
-    \Log::info('Validated data:', $validated); // Log validated input
-
-    $task = Task::create($validated);
-
-    \Log::info('Created Task:', $task->toArray()); // Log created task data
-
-    return response()->json($task, 201);
+    return redirect()->back()->with('success', 'Task marked as done!');
 }
 
 
-    public function show($id)
+    public function destroy(Task $task)
     {
-        return Task::findOrFail($id);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $task = Task::findOrFail($id);
-
-        $validated = $request->validate([
-            'title' => 'sometimes|required|string',
-            'description' => 'nullable|string',
-            'due_date' => 'nullable|date',
-            'status' => 'nullable|in:pending,done'
-        ]);
-
-        $task->update($validated);
-        return response()->json($task);
-    }
-
-    public function destroy($id)
-    {
-        Task::destroy($id);
-        return response()->json(['message' => 'Task deleted']);
+        $task->delete();
+        return redirect('/')->with('success', 'Task deleted!');
     }
 }
